@@ -1,19 +1,12 @@
+HEADERS = src/codexion.h
+
 NAME = codexion
+
 CC = cc
 CFLAGS = -Wall -Wextra -Werror -pthread
 
-SRCS = main.c \
-       utils.c \
-       args.c \
-       heap.c \
-       dongle.c \
-       simulation.c \
-       monitor.c \
-       init.c \
-       utils_2.c \
-       simulation_utils.c \
-       dongle_utils.c \
-       error_message.c
+SRCS = src/main.c src/args.c src/dongle.c src/error_message.c src/heap_utils.c src/heap.c src/init.c \
+	src/input_utils.c src/monitor.c src/simulation_utils.c src/simulation.c src/utils_0.c
 
 OBJS = $(SRCS:.c=.o)
 
@@ -22,7 +15,7 @@ all: $(NAME)
 $(NAME): $(OBJS)
 	$(CC) $(CFLAGS) -o $(NAME) $(OBJS)
 
-%.o: %.c codexion.h
+src/%.o: src/%.c $(HEADERS)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:

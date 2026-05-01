@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   args.h                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: yrziqi <yrziqi@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/04/30 13:03:17 by yrziqi            #+#    #+#             */
+/*   Updated: 2026/04/30 13:03:18 by yrziqi           ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "codexion.h"
 
 short	is_empty_args(t_args args)
@@ -10,7 +22,7 @@ short	is_empty_args(t_args args)
 	return (0);
 }
 
-static t_args	empty_args(void)
+t_args	empty_args(void)
 {
 	t_args	args;
 
@@ -21,11 +33,11 @@ static t_args	empty_args(void)
 	args.time_to_refactor = 0;
 	args.number_of_compiles_required = 0;
 	args.dongle_cooldown = 0;
-	args.scheduler_type = 0;
+	args.scheduler_type = FIFO;
 	return (args);
 }
 
-static short	check_args(char **argv)
+short	check_args(char **argv)
 {
 	int	i;
 
@@ -41,7 +53,7 @@ static short	check_args(char **argv)
 	return (1);
 }
 
-static t_args	args_converted(char **argv)
+t_args	args_converted(char **argv)
 {
 	t_args	args;
 
@@ -60,9 +72,9 @@ static t_args	args_converted(char **argv)
 		else
 			args.scheduler_type = EDF;
 	}
-	if (args.number_of_coders <= 0 || args.time_to_burnout <= 0
-		|| args.time_to_compile <= 0 || args.time_to_debug <= 0
-		|| args.time_to_refactor <= 0 || args.number_of_compiles_required <= 0
+	if (args.number_of_coders < 0 || args.time_to_burnout < 0
+		|| args.time_to_compile < 0 || args.time_to_debug < 0
+		|| args.time_to_refactor < 0 || args.number_of_compiles_required < 0
 		|| args.dongle_cooldown < 0)
 		args = empty_args();
 	return (args);
@@ -75,6 +87,5 @@ t_args	convert_args(int argc, char **argv)
 	args = empty_args();
 	if (argc == 9)
 		args = args_converted(argv);
-
 	return (args);
 }
