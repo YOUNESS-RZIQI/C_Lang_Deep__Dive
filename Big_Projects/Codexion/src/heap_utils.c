@@ -12,13 +12,22 @@
 
 #include "codexion.h"
 
-int	compare_nodes(t_heap_node a, t_heap_node b, t_scheduler type)
+int	compare_nodes(t_simulation *sim, t_heap_node shiled, t_heap_node parent)
 {
-	if (type == FIFO)
-		return (a.priority - b.priority);
-	if (a.priority != b.priority)
-		return (a.priority - b.priority);
-	return (a.coder_number - b.coder_number);
+	(void)sim;
+	if (shiled.priority < parent.priority)
+		return (-1);
+	if (shiled.priority > parent.priority)
+		return (1);
+	if (shiled.compile_count < parent.compile_count)
+		return (-1);
+	if (shiled.compile_count > parent.compile_count)
+		return (1);
+	if (shiled.coder_number < parent.coder_number)
+		return (-1);
+	if (shiled.coder_number > parent.coder_number)
+		return (1);
+	return (1);
 }
 
 void	swap_nodes(t_heap_node *a, t_heap_node *b)
@@ -30,20 +39,17 @@ void	swap_nodes(t_heap_node *a, t_heap_node *b)
 	*b = temp;
 }
 
-void	heapify_up(t_heap *heap, int i, t_scheduler type)
+void	heapify_up(t_simulation *sim, t_heap *heap, int i)
 {
-	if (i == 2)
-		if (compare_nodes(heap->nodes[1], heap->nodes[0], type) < 0)
+	(void)i;
+	if (heap->size == 2)
+		if (compare_nodes(sim, heap->nodes[1], heap->nodes[0]) < 0)
 			swap_nodes(&heap->nodes[0], &heap->nodes[1]);
 }
 
 void	heapify_down(t_heap *heap)
 {
 	if (heap->size == 2)
-		swap_nodes(&(heap->nodes[0]), &(heap->nodes[1]));
+		swap_nodes(&heap->nodes[0], &heap->nodes[1]);
 }
 
-int	heap_is_empty(t_heap *heap)
-{
-	return (heap->size == 0);
-}

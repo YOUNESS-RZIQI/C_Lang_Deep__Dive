@@ -30,15 +30,11 @@ int	check_all_compiled(t_simulation *sim)
 int	check_coders_burnout(t_simulation *sim)
 {
 	int			i;
-	long long	now;
-	long long	diff;
 
 	i = 0;
 	while (i < sim->args.number_of_coders)
 	{
-		now = get_current_time_ms();
-		diff = now - sim->coders[i].time_since_last_compile;
-		if (diff >= sim->coders[i].time_to_burnout)
+		if (get_current_time_ms() >= sim->coders[i].deadline)
 		{
 			sim->stop_simulation = 1;
 			pthread_mutex_unlock(&sim->sim_mutex);
@@ -58,11 +54,17 @@ void	*run_monitor(void *arg)
 {
 	t_simulation	*sim;
 
+
 	sim = (t_simulation *)arg;
-	wait_at_barrier(sim);
+
+	if (wait_at_barrier(sim))
+		return (NULL);
+	
 	while (1)
 	{
 		pthread_mutex_lock(&sim->sim_mutex);
+		if (check_coders_burnout(sim))
+			return (NULL);
 		if (check_all_compiled(sim))
 		{
 			sim->stop_simulation = 1;
@@ -70,9 +72,8 @@ void	*run_monitor(void *arg)
 			wake_all_dongles(sim);
 			break ;
 		}
-		if (check_coders_burnout(sim))
-			return (NULL);
 		pthread_mutex_unlock(&sim->sim_mutex);
+		usleep(1);
 	}
 	return (NULL);
 }

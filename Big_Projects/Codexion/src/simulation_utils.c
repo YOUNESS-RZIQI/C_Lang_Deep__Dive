@@ -19,14 +19,12 @@ long long	get_time_since_start(t_simulation *sim)
 
 void	print_action(t_simulation *sim, int coder_id, char *action)
 {
-	pthread_mutex_lock(&sim->sim_print_mutex);
-	pthread_mutex_lock(&sim->sim_mutex);
-	if (!sim->stop_simulation)
+	if (!should_stop(sim))
 	{
+		pthread_mutex_lock(&sim->sim_print_mutex);
 		printf("%lld %d %s\n", get_time_since_start(sim), coder_id, action);
+		pthread_mutex_unlock(&sim->sim_print_mutex);
 	}
-	pthread_mutex_unlock(&sim->sim_mutex);
-	pthread_mutex_unlock(&sim->sim_print_mutex);
 }
 
 int	should_stop(t_simulation *sim)
@@ -42,20 +40,27 @@ int	should_stop(t_simulation *sim)
 void	custom_usleep(long long wait_time, t_simulation *sim)
 {
 	long long	start;
+	long long	now;
+	long long	remaining;
 
 	start = get_current_time_ms();
-	while ((get_current_time_ms() - start) < wait_time)
+
+	while (1)
 	{
 		if (should_stop(sim))
 			break ;
-		usleep(500);
-	}
-}
 
-void	grab_dongles(t_coder *coder)
-{
-	take_dongle(coder->left_dongle, coder);
-	print_action(coder->sim, coder->coder_number, "has taken a dongle");
-	take_dongle(coder->right_dongle, coder);
-	print_action(coder->sim, coder->coder_number, "has taken a dongle");
+		now = get_current_time_ms();
+		remaining = wait_time - (now - start);
+
+		if (remaining <= 0)
+			break ;
+
+		if (remaining > 50)
+			usleep(5000);
+		else if (remaining > 10)
+			usleep(1000);
+		else if (remaining > 3)
+			usleep(200);
+	}
 }

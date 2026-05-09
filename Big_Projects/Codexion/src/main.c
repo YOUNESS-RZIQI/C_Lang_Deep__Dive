@@ -26,33 +26,47 @@ void	handle_thread_creation_failure(t_simulation *sim, pthread_t *th,
 		pthread_join(th[i], NULL);
 }
 
-short	start_threads(t_simulation *sim, pthread_t *th)
+bool	start_threads(t_simulation *sim, pthread_t *th)
 {
 	pthread_t	monitor;
 	int			i;
 
-	i = -1;
-	while (++i < sim->args.number_of_coders)
+	i = 0;
+	while (i < sim->args.number_of_coders)
 	{
 		if (pthread_create(&th[i], NULL, run_simulation, &sim->coders[i]) != 0)
 		{
 			handle_thread_creation_failure(sim, th, i);
 			return (1);
 		}
+		i++;
 	}
 	if (pthread_create(&monitor, NULL, run_monitor, sim) != 0)
 	{
 		handle_thread_creation_failure(sim, th, i);
 		return (1);
 	}
+
+
+	pthread_mutex_lock(&sim->sim_mutex);
+
+	while (!(sim->threads_at_barrier == sim->args.number_of_coders + 1)){
+		pthread_mutex_unlock(&sim->sim_mutex);
+		usleep(200);
+		pthread_mutex_lock(&sim->sim_mutex);
+	}
+	sim->start_time = get_current_time_ms();
+	pthread_cond_broadcast(&sim->sim_cond);
+	pthread_mutex_unlock(&sim->sim_mutex);
+
 	pthread_join(monitor, NULL);
-	i = -1;
-	while (++i < sim->args.number_of_coders)
-		pthread_join(th[i], NULL);
+	i = 0;
+	while (i < sim->args.number_of_coders)
+		pthread_join(th[i++], NULL);
 	return (0);
 }
 
-short	initialize_simulation(t_simulation *sim, pthread_t **th)
+bool	initialize_simulation(t_simulation *sim, pthread_t **th)
 {
 	sim->coders = malloc(sizeof(t_coder) * sim->args.number_of_coders);
 	sim->dongles = malloc(sizeof(t_dongle) * sim->args.number_of_coders);
@@ -63,14 +77,13 @@ short	initialize_simulation(t_simulation *sim, pthread_t **th)
 		return (1);
 	sim->stop_simulation = 0;
 	sim->threads_at_barrier = 0;
-	init_dongles(sim);
-	init_coders(sim);
+	init_coders_and_dongles(sim);
 	return (0);
 }
 
-short	run_and_cleanup(t_simulation *sim, pthread_t *th)
+bool	run_and_cleanup(t_simulation *sim, pthread_t *th)
 {
-	short	result;
+	bool	result;
 
 	if (initialize_all_mutexes(sim) == 0)
 	{
@@ -106,23 +119,3 @@ int	main(int argc, char **argv)
 	}
 	return (run_and_cleanup(&sim, th));
 }
-
-/*
-
-    init.c					|done|
-    args.c					|done|
-	main.c					|done|
-	
-    
-	codexion.h				|Not done|
-	utils.c					|Not done|
-	dongle_utils.c			|Not done|
-	utils_2.c				|Not done|
-	heap.c					|Not done|
-	dongle.c				|Not done|
-	Makefile				|Not done|
-	monitor.c				|Not done|
-	simulation_utils.c		|Not done|
-	simulation.c			|Not done|
-
-*/
