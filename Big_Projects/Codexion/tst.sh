@@ -9,19 +9,34 @@ SLEEP_TIME=0.5
 # dongle_cooldown scheduler
 
 # should burnout.
-# ARGS="199 330 100 100 100 5 10  edf"
+# ARGS="199 328 100 100 100 5 10  edf"
 # ARGS="200 298 100 100 100 5 10  edf"
-# ARGS="199 2100 100 100 100 5 600  edf"
-# ARGS="199 2100 600 100 100 5 100  edf"
-# ARGS="200 1400 100 100 100 5 600  edf"
+# ARGS="199 2098 100 100 100 5 600  edf"
+# ARGS="199 2098 600 100 100 5 100  edf"
+# ARGS="200 1398 100 100 100 5 600  edf"
 
-# not bournout
+# should not bournout
 # ARGS="199 340 100 100 100 5 10  edf"
 # ARGS="9 340 100 100 100 5 10  edf"
 # ARGS="199 2110 100 100 100 5 600  edf"
 # ARGS="9 2110 100 100 100 5 600  edf"
-ARGS="200 1410 100 100 100 5 600  edf"
+# ARGS="200 1410 100 100 100 5 600  edf"
 # ARGS="199 2110 600 100 100 5 100  edf"
+
+# should burnout.
+# ARGS="199 328 100 100 100 5 10  fifo"
+# ARGS="200 298 100 100 100 5 10  fifo"
+# ARGS="199 2098 100 100 100 5 600  fifo"
+# ARGS="199 2098 600 100 100 5 100  fifo"
+# ARGS="200 1398 100 100 100 5 600  fifo"
+
+# should not bournout
+# ARGS="199 340 100 100 100 5 10  fifo"
+# ARGS="9 340 100 100 100 5 10  fifo"
+# ARGS="199 2110 100 100 100 5 600  fifo"
+# ARGS="9 2110 100 100 100 5 600  fifo"
+# ARGS="200 1410 100 100 100 5 600  fifo"
+# ARGS="199 2110 600 100 100 5 100  fifo"
 
 echo "Starting $ITERATIONS tests for $EXECUTABLE..."
 

@@ -19,12 +19,12 @@ long long	get_time_since_start(t_simulation *sim)
 
 void	print_action(t_simulation *sim, int coder_id, char *action)
 {
+	pthread_mutex_lock(&sim->sim_print_mutex);
 	if (!should_stop(sim))
 	{
-		pthread_mutex_lock(&sim->sim_print_mutex);
 		printf("%lld %d %s\n", get_time_since_start(sim), coder_id, action);
-		pthread_mutex_unlock(&sim->sim_print_mutex);
 	}
+	pthread_mutex_unlock(&sim->sim_print_mutex);
 }
 
 int	should_stop(t_simulation *sim)
@@ -44,18 +44,14 @@ void	custom_usleep(long long wait_time, t_simulation *sim)
 	long long	remaining;
 
 	start = get_current_time_ms();
-
 	while (1)
 	{
 		if (should_stop(sim))
 			break ;
-
 		now = get_current_time_ms();
 		remaining = wait_time - (now - start);
-
 		if (remaining <= 0)
 			break ;
-
 		if (remaining > 50)
 			usleep(5000);
 		else if (remaining > 10)

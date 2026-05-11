@@ -21,6 +21,10 @@
 # include <unistd.h>
 # include <stdbool.h>
 
+# define MAX_WAITERS 2
+# define SWAP 1
+# define DONOTSWAP 0
+
 typedef enum e_scheduler {
 	FIFO,
 	EDF
@@ -47,7 +51,7 @@ typedef struct s_heap_node
 
 typedef struct s_heap
 {
-	t_heap_node	nodes[2];
+	t_heap_node	waiters[MAX_WAITERS];
 	int			size;
 }	t_heap;
 
@@ -114,29 +118,29 @@ long long		get_current_time_ms(void);
 void			wake_all_dongles(t_simulation *sim);
 
 bool			wait_at_barrier(t_simulation *sim);
+void			wait_barrier_start(t_simulation *sim);
 
 void			init_coders_and_dongles(t_simulation *sim);
 
+void			heapify_up(t_simulation *sim, t_heap *heap);
 
-void			heapify_up(t_simulation *sim, t_heap *heap, int i);
+void			heapify_down(t_simulation *sim, t_heap *heap);
 
-void			heapify_down(t_heap *heap);
+void			heap_insert(t_simulation *sim, t_heap *heap,
+					t_heap_node node);
 
-
-int				heap_insert(t_simulation *sim, t_heap *heap, t_heap_node node,
-					t_scheduler type);
-
-t_heap_node		heap_peek(t_heap *heap);
-
-void			heap_extract_min(t_heap *heap);
-
-void			heap_remove(t_heap *heap, int coder_num);
+void			heap_extract_min(t_simulation *sim, t_heap *heap);
 
 struct timespec	get_timespec_from_ms(long long ms);
+int				is_dongle_ready(t_dongle *d, long long now);
+int				can_take_both(t_coder *c, long long now);
+void			enqueue_coder(t_coder *c, int l_id, int r_id);
+void			try_take(t_simulation *sim, int l_id, int r_id);
 
-void			take_dongles(int dongle_id, t_coder *coder);
+void			take_dongles(t_coder *coder);
 
-void			release_dongles(int left_dongle_id, int right_dongle_id, t_coder *coder);
+void			release_dongles(int left_dongle_id, int right_dongle_id,
+					t_coder *coder);
 
 void			cleanup_sim(t_simulation *sim, pthread_t *th,
 					bool destroy_mutexes);
