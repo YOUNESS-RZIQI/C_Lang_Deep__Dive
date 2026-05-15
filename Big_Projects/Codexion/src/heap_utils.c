@@ -6,7 +6,7 @@
 /*   By: yrziqi <yrziqi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/30 13:03:36 by yrziqi            #+#    #+#             */
-/*   Updated: 2026/05/11 05:15:00 by yrziqi           ###   ########.fr       */
+/*   Updated: 2026/05/11 11:39:41 by yrziqi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,23 +62,24 @@ void	heapify_down(t_simulation *sim, t_heap *heap)
 	int	parent;
 	int	l_child;
 	int	r_child;
-	int	sm_or_hi;
+	int	child_to_compar_whith;
 
 	parent = 0;
 	while (1)
 	{
 		l_child = (2 * parent) + 1;
 		r_child = (2 * parent) + 2;
-		sm_or_hi = parent;
+		child_to_compar_whith = parent;
 		if (l_child < heap->size && should_swap(sim, heap->waiters[l_child],
-				heap->waiters[sm_or_hi]) == SWAP)
-			sm_or_hi = l_child;
+				heap->waiters[child_to_compar_whith]) == SWAP)
+			child_to_compar_whith = l_child;
 		if (r_child < heap->size && should_swap(sim, heap->waiters[r_child],
-				heap->waiters[sm_or_hi]) == SWAP)
-			sm_or_hi = r_child;
-		if (sm_or_hi == parent)
+				heap->waiters[child_to_compar_whith]) == SWAP)
+			child_to_compar_whith = r_child;
+		if (child_to_compar_whith == parent)
 			break ;
-		swap_waiters(&heap->waiters[parent], &heap->waiters[sm_or_hi]);
-		parent = sm_or_hi;
+		swap_waiters(&heap->waiters[parent],
+			&heap->waiters[child_to_compar_whith]);
+		parent = child_to_compar_whith;
 	}
 }

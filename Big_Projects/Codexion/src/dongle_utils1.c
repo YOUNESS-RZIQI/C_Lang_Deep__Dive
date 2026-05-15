@@ -1,25 +1,16 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   dongle_utils.c                                     :+:      :+:    :+:   */
+/*   dongle_utils1.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: yrziqi <yrziqi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/11 05:12:00 by yrziqi            #+#    #+#             */
-/*   Updated: 2026/05/11 05:12:00 by yrziqi           ###   ########.fr       */
+/*   Updated: 2026/05/11 10:10:11 by yrziqi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
-
-struct timespec	get_timespec_from_ms(long long ms)
-{
-	struct timespec	ts;
-
-	ts.tv_sec = ms / 1000;
-	ts.tv_nsec = (ms % 1000) * 1000000;
-	return (ts);
-}
 
 int	is_dongle_ready(t_dongle *d, long long now)
 {
@@ -55,15 +46,14 @@ void	enqueue_coder(t_coder *c, int l_id, int r_id)
 	h_node.coder_number = c->coder_number;
 	h_node.priority = c->deadline;
 	h_node.compile_count = c->compile_count;
-	pthread_mutex_lock(&sim->dongles[l_id].dongle_mutex);
-	pthread_mutex_lock(&sim->dongles[r_id].dongle_mutex);
+	lock_dongles(sim, l_id, r_id);
 	heap_insert(sim, &sim->dongles[l_id].heap, h_node);
 	heap_insert(sim, &sim->dongles[r_id].heap, h_node);
-	pthread_mutex_unlock(&sim->dongles[r_id].dongle_mutex);
 	pthread_mutex_unlock(&sim->dongles[l_id].dongle_mutex);
+	pthread_mutex_unlock(&sim->dongles[r_id].dongle_mutex);
 }
 
-void	try_take(t_simulation *sim, int l_id, int r_id)
+void	take(t_simulation *sim, int l_id, int r_id)
 {
 	sim->dongles[l_id].dongle_is_available = 0;
 	sim->dongles[r_id].dongle_is_available = 0;

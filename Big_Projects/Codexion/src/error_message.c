@@ -12,32 +12,26 @@
 
 #include "codexion.h"
 
-bool	null_error_message(void)
-{
-	write(2, "! ! ! Error (type: NULL return) ! ! !\n", 38);
-	return (1);
-}
-
 bool	input_error_message(void)
 {
-	write(2, "! ! ! Error in Input ! ! !\n", 27);
+	write(2, "! ! ! Error in Input ! ! !\n", 28);
 	return (1);
 }
 
 bool	initialize_simulation_error_message(void)
 {
-	write(2, "! ! ! Error in Initialization ! ! !\n", 36);
+	write(2, "! ! ! Error in Initialization ! ! !\n", 37);
 	return (1);
 }
 
 bool	mutex_error_message(void)
 {
-	write(2, "! ! ! Error in Mutex Initialization ! ! !\n", 42);
+	write(2, "! ! ! Error in Mutex Initialization ! ! !\n", 43);
 	return (1);
 }
 
 bool	thread_creation_fail_error_message(void)
 {
-	write(2, "! ! ! Error in thread creation ! ! !\n", 37);
+	write(2, "! ! ! Error in thread creation ! ! !\n", 38);
 	return (1);
 }

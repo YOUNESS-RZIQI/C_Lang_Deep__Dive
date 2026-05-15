@@ -6,7 +6,7 @@
 /*   By: yrziqi <yrziqi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/30 13:03:24 by yrziqi            #+#    #+#             */
-/*   Updated: 2026/04/30 13:03:25 by yrziqi           ###   ########.fr       */
+/*   Updated: 2026/05/11 10:56:37 by yrziqi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,8 +22,35 @@
 # include <stdbool.h>
 
 # define MAX_WAITERS 2
+
+# define NEED_SIM 1
+# define NO_NEED_SIM 0
+
 # define SWAP 1
 # define DONOTSWAP 0
+
+# define NO 0
+# define YES 1
+
+# define DESTROY_MUTEX 1
+# define NOT_DESTROY_MUTEX 0
+
+# define FAIL 1
+# define SUCCESS 0
+
+# define COND_FAIL 101
+# define MUTEX_FAIL 102
+
+# define EQUAL 0
+
+# define INVALID_ARGS 0
+# define VALID_ARGS 1
+
+# define NO_BURNED_OUT 0
+# define BURNED_OUT 1
+
+# define ALL_COMPILES_DONE 1
+# define COMPILES_NOT_DONE 0
 
 typedef enum e_scheduler {
 	FIFO,
@@ -63,7 +90,6 @@ typedef struct s_dongle
 	long long		cooldown_end_time;
 	t_heap			heap;
 	pthread_mutex_t	dongle_mutex;
-	pthread_cond_t	dongle_cond;
 }	t_dongle;
 
 typedef struct s_coder
@@ -91,19 +117,24 @@ typedef struct s_simulation
 	long long			start_time;
 }	t_simulation;
 
+short			no_need_for_simulation(int coders_num, int compile_required);
+
+void			update_last_start_compile_and_deadline(t_simulation *sim,
+					int c_id);
+
+void			lock_dongles(t_simulation *sim, int l_id, int r_id);
+
 bool			is_full_digit(char *s);
 
 bool			ft_isdigit(char c);
 
-long long		ft_atoi(const char *s);
+int				ft_atoi(const char *s);
 
 bool			is_empty_args(t_args args);
 
 t_args			empty_args(void);
 
 t_args			convert_args(int argc, char **argv);
-
-bool			null_error_message(void);
 
 bool			input_error_message(void);
 
@@ -115,9 +146,8 @@ bool			thread_creation_fail_error_message(void);
 
 long long		get_current_time_ms(void);
 
-void			wake_all_dongles(t_simulation *sim);
-
 bool			wait_at_barrier(t_simulation *sim);
+
 void			wait_barrier_start(t_simulation *sim);
 
 void			init_coders_and_dongles(t_simulation *sim);
@@ -132,20 +162,26 @@ void			heap_insert(t_simulation *sim, t_heap *heap,
 void			heap_extract_min(t_simulation *sim, t_heap *heap);
 
 struct timespec	get_timespec_from_ms(long long ms);
+
 int				is_dongle_ready(t_dongle *d, long long now);
+
 int				can_take_both(t_coder *c, long long now);
+
+bool			one_coder_case(t_simulation *sim, t_coder *coder);
+
 void			enqueue_coder(t_coder *c, int l_id, int r_id);
-void			try_take(t_simulation *sim, int l_id, int r_id);
+
+void			take(t_simulation *sim, int l_id, int r_id);
 
 void			take_dongles(t_coder *coder);
 
-void			release_dongles(int left_dongle_id, int right_dongle_id,
+void			release_dongles(int l_id, int r_id,
 					t_coder *coder);
 
 void			cleanup_sim(t_simulation *sim, pthread_t *th,
 					bool destroy_mutexes);
 
-bool			initialize_all_mutexes(t_simulation *sim);
+bool			initialized_all_mutexes_and_cond(t_simulation *sim);
 
 long long		get_time_since_start(t_simulation *sim);
 

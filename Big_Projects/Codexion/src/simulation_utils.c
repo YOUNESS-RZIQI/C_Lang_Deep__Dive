@@ -44,10 +44,8 @@ void	custom_usleep(long long wait_time, t_simulation *sim)
 	long long	remaining;
 
 	start = get_current_time_ms();
-	while (1)
+	while (!should_stop(sim))
 	{
-		if (should_stop(sim))
-			break ;
 		now = get_current_time_ms();
 		remaining = wait_time - (now - start);
 		if (remaining <= 0)
@@ -58,5 +56,9 @@ void	custom_usleep(long long wait_time, t_simulation *sim)
 			usleep(1000);
 		else if (remaining > 3)
 			usleep(200);
+		else if (remaining > 2)
+			usleep(50);
+		else
+			usleep(10);
 	}
 }

@@ -6,20 +6,35 @@
 /*   By: yrziqi <yrziqi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/30 13:03:30 by yrziqi            #+#    #+#             */
-/*   Updated: 2026/05/11 05:12:00 by yrziqi           ###   ########.fr       */
+/*   Updated: 2026/05/11 11:40:37 by yrziqi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
 
-static void	do_wait(t_dongle *d_wait, t_dongle *d_other, long long t_time)
+void	lock_dongles(t_simulation *sim, int l_id, int r_id)
 {
-	struct timespec	ts;
+	if (l_id < r_id)
+	{
+		pthread_mutex_lock(&sim->dongles[l_id].dongle_mutex);
+		pthread_mutex_lock(&sim->dongles[r_id].dongle_mutex);
+	}
+	else
+	{
+		pthread_mutex_lock(&sim->dongles[r_id].dongle_mutex);
+		pthread_mutex_lock(&sim->dongles[l_id].dongle_mutex);
+	}
+}
 
-	ts = get_timespec_from_ms(t_time);
-	pthread_mutex_unlock(&d_other->dongle_mutex);
-	pthread_cond_timedwait(&d_wait->dongle_cond, &d_wait->dongle_mutex, &ts);
-	pthread_mutex_unlock(&d_wait->dongle_mutex);
+void	do_wait(t_dongle *l_d, t_dongle *r_d,
+					long long t_time, t_simulation *s)
+{
+	pthread_mutex_unlock(&r_d->dongle_mutex);
+	pthread_mutex_unlock(&l_d->dongle_mutex);
+	if (t_time <= 0)
+		usleep(200);
+	else
+		custom_usleep(t_time, s);
 }
 
 void	wait_for_dongles(t_simulation *s, int l_id, int r_id)
@@ -38,13 +53,13 @@ void	wait_for_dongles(t_simulation *s, int l_id, int r_id)
 		d_wait = &s->dongles[l_id];
 	else
 		d_wait = &s->dongles[r_id];
-	t_time = now + 10;
+	t_time = now;
 	if (d_wait->dongle_is_available && d_wait->cooldown_end_time > now)
 		t_time = d_wait->cooldown_end_time;
 	if (w_first)
-		do_wait(d_wait, &s->dongles[r_id], t_time);
+		do_wait(d_wait, &s->dongles[r_id], t_time - get_current_time_ms(), s);
 	else
-		do_wait(d_wait, &s->dongles[l_id], t_time);
+		do_wait(d_wait, &s->dongles[l_id], t_time - get_current_time_ms(), s);
 }
 
 void	take_dongles(t_coder *c)
@@ -57,33 +72,29 @@ void	take_dongles(t_coder *c)
 	l_id = c->left_dongle;
 	r_id = c->right_dongle;
 	enqueue_coder(c, l_id, r_id);
-	while (1)
+	while (!should_stop(sim))
 	{
-		if (should_stop(sim))
-			return ;
-		pthread_mutex_lock(&sim->dongles[l_id].dongle_mutex);
-		pthread_mutex_lock(&sim->dongles[r_id].dongle_mutex);
+		lock_dongles(sim, l_id, r_id);
 		if (can_take_both(c, get_current_time_ms()))
 		{
-			try_take(sim, l_id, r_id);
+			take(sim, l_id, r_id);
+			print_action(sim, c->coder_number, "has taken a dongle");
+			print_action(sim, c->coder_number, "has taken a dongle");
 			return ;
 		}
 		wait_for_dongles(sim, l_id, r_id);
 	}
-	print_action(sim, c->coder_number, "has taken a dongle");
-	print_action(sim, c->coder_number, "has taken a dongle");
 }
 
-void	release_dongles(int left_dongle_id, int right_dongle_id, t_coder *coder)
+void	release_dongles(int l_id, int r_id, t_coder *coder)
 {
 	t_dongle	*l_d;
 	t_dongle	*r_d;
 	long long	now;
 
-	l_d = &coder->sim->dongles[left_dongle_id];
-	r_d = &coder->sim->dongles[right_dongle_id];
-	pthread_mutex_lock(&l_d->dongle_mutex);
-	pthread_mutex_lock(&r_d->dongle_mutex);
+	l_d = &coder->sim->dongles[l_id];
+	r_d = &coder->sim->dongles[r_id];
+	lock_dongles(coder->sim, l_id, r_id);
 	now = get_current_time_ms();
 	l_d->dongle_is_available = 1;
 	r_d->dongle_is_available = 1;

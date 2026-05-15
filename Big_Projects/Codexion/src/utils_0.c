@@ -19,36 +19,22 @@ long long	get_current_time_ms(void)
 	return ((tv.tv_sec * 1000LL) + (tv.tv_usec / 1000));
 }
 
-void	wake_all_dongles(t_simulation *sim)
-{
-	int	i;
-
-	i = 0;
-	while (i < sim->args.number_of_coders)
-	{
-		pthread_mutex_lock(&sim->dongles[i].dongle_mutex);
-		pthread_cond_broadcast(&sim->dongles[i].dongle_cond);
-		pthread_mutex_unlock(&sim->dongles[i].dongle_mutex);
-		i++;
-	}
-}
-
 bool	wait_at_barrier(t_simulation *sim)
 {
 	pthread_mutex_lock(&sim->sim_mutex);
+	sim->threads_at_barrier++;
 	while (!sim->stop_simulation && !(sim->threads_at_barrier
 			== sim->args.number_of_coders + 1))
 	{
-		sim->threads_at_barrier++;
 		pthread_cond_wait(&sim->sim_cond, &sim->sim_mutex);
 	}
-	if (!(sim->threads_at_barrier == sim->args.number_of_coders + 1))
+	if (sim->threads_at_barrier != sim->args.number_of_coders + 1)
 	{
 		pthread_mutex_unlock(&sim->sim_mutex);
-		return (1);
+		return (FAIL);
 	}
 	pthread_mutex_unlock(&sim->sim_mutex);
-	return (0);
+	return (SUCCESS);
 }
 
 void	wait_barrier_start(t_simulation *sim)
@@ -60,7 +46,6 @@ void	wait_barrier_start(t_simulation *sim)
 		usleep(200);
 		pthread_mutex_lock(&sim->sim_mutex);
 	}
-	sim->start_time = get_current_time_ms();
 	pthread_cond_broadcast(&sim->sim_cond);
 	pthread_mutex_unlock(&sim->sim_mutex);
 }
@@ -70,7 +55,6 @@ void	init_coders_and_dongles(t_simulation *sim)
 	int	i;
 	int	n;
 
-	memset(sim->coders, 0, sizeof(t_coder) * sim->args.number_of_coders);
 	i = 0;
 	n = sim->args.number_of_coders;
 	while (i < n)
